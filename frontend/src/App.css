@@ -1,0 +1,55 @@
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .message-container {
+    width: 80%;
+    margin-bottom: 20px;
+  }
+  
+  .message {
+    padding: 8px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+  }
+  
+  .sent {
+    background-color: #DCF8C6;
+    align-self: flex-end;
+  }
+  
+  .received {
+    background-color: #E0E0E0;
+    align-self: flex-start;
+  }
+  
+  .input-container {
+    display: flex;
+    width: 80%;
+  }
+  
+  .input-container input {
+    flex: 1;
+    padding: 8px;
+    margin-right: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  
+  .input-container button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    background-color: #007BFF;
+    color: white;
+    cursor: pointer;
+  }
+  
+  .input-container button:hover {
+    background-color: #0056b3;
+  }
+  

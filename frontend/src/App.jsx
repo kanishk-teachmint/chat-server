@@ -1,57 +1,71 @@
-// ChatClient.js (React component)
+import React, { useState, useEffect, useRef } from 'react';
+import './App.css'; // Import your CSS file for styling
 
-import React, { useState, useEffect } from 'react';
-
-const ChatClient = () => {
+function App() {
   const [messages, setMessages] = useState([]);
-  const [messageInput, setMessageInput] = useState('');
-  const [ws, setWs] = useState(null);
+  const [input, setInput] = useState('');
+  const ws = useRef(null);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
-    setWs(ws);
-
-    ws.onopen = () => {
-      console.log('Connected to WebSocket server');
+    ws.current = new WebSocket('ws://localhost:8080');
+    ws.current.onmessage = (event) => {
+      handleMessage(event.data);
     };
-
-    ws.onmessage = (event) => {
-      setMessages(prevMessages => [...prevMessages, event.data]);
-    };
-
     return () => {
-      ws.close();
+      ws.current.close();
     };
   }, []);
 
-  const sendMessage = () => {
-    if (ws && messageInput.trim() !== '') {
-      ws.send(messageInput);
-      setMessageInput('');
+  const handleMessage = (message) => {
+    if (typeof message === 'string') {
+      try {
+        const messageData = JSON.parse(message);
+        const newMessage = { message: messageData.message, type: 'received' };
+        setMessages(prevMessages => [...prevMessages, newMessage]);
+      } catch (error) {
+        console.error('Error parsing JSON message:', error);
+      }
+    } else if (message instanceof Blob) {
+      const reader = new FileReader();
+      reader.onload = function() {
+        const text = reader.result;
+        const newMessage = { message: text, type: 'received' }; // Assuming Blob contains text data
+        setMessages(prevMessages => [...prevMessages, newMessage]);
+      };
+      reader.readAsText(message);
+    } else {
+      console.error('Unsupported message type:', typeof message);
     }
   };
 
-  const handleChange = (event) => {
-    setMessageInput(event.target.value);
+  const sendMessage = () => {
+    if (input.trim() !== '') {
+      const newMessage = { message: input, type: 'sent' };
+      ws.current.send(JSON.stringify({ message: input })); // Send message to server
+      setMessages(prevMessages => [...prevMessages, newMessage]); // Display sent message locally
+      setInput(''); // Clear input field
+    }
   };
 
   return (
-    <div>
-      <h2>Chat App</h2>
-      <div>
-        {messages.map((message, index) => (
-          <div key={index}>{message}</div>
+    <div className="app-container">
+      <div className="message-container">
+        {messages.map((msg, index) => (
+          <div key={index} className={`message ${msg.type}`}>
+            {msg.message}
+          </div>
         ))}
       </div>
-      <input
-        type="text"
-        value={messageInput}
-        onChange={handleChange}
-        placeholder="Type your message..."
-      />
-      <button onClick={sendMessage}>Send</button>
+      <div className="input-container">
+        <input 
+          type="text" 
+          value={input} 
+          onChange={(e) => setInput(e.target.value)} 
+        />
+        <button onClick={sendMessage}>Send</button>
+      </div>
     </div>
   );
-};
+}
 
-export default ChatClient;
+export default App;
